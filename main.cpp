@@ -11,6 +11,8 @@
 HHOOK keyHook;
 QList<QSoundEffect*> mediaPlayers;
 
+DWORD lastCode;
+
 LRESULT CALLBACK keyProc(int nCode,WPARAM wParam,LPARAM lParam )
 {
     //在WH_KEYBOARD_LL模式下lParam 是指向KBDLLHOOKSTRUCT类型地址
@@ -18,10 +20,11 @@ LRESULT CALLBACK keyProc(int nCode,WPARAM wParam,LPARAM lParam )
     if(nCode == HC_ACTION){
         KBDLLHOOKSTRUCT *pkbhs = (KBDLLHOOKSTRUCT *) lParam;
         if(wParam == WM_KEYDOWN) {
-            bool bOtherKey = (GetAsyncKeyState(VK_SHIFT) < 0) ||
-                                   (GetAsyncKeyState(VK_CONTROL) < 0) ||
-                                   (GetAsyncKeyState(VK_MENU) < 0);
-            if(!bOtherKey || (bOtherKey && pkbhs->vkCode != VK_SHIFT &&pkbhs->vkCode != VK_CONTROL &&pkbhs->vkCode != VK_MENU)) {
+//            bool bOtherKey = (GetAsyncKeyState(VK_SHIFT) < 0) ||
+//                                   (GetAsyncKeyState(VK_CONTROL) < 0) ||
+//                                   (GetAsyncKeyState(VK_MENU) < 0);
+            if(lastCode != pkbhs->vkCode) {
+                lastCode = pkbhs->vkCode;
                 QSoundEffect* ptr=nullptr;
                 for(int i=0;i<mediaPlayers.size();++i)
                 {
@@ -39,6 +42,10 @@ LRESULT CALLBACK keyProc(int nCode,WPARAM wParam,LPARAM lParam )
                 ptr->setVolume(1.0f);
                 ptr->play();
             }
+        }
+        else if(wParam == WM_KEYUP)
+        {
+            lastCode = 0;
         }
     }
     return CallNextHookEx(keyHook, nCode, wParam, lParam);
